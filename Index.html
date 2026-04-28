@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Spin Wheel</title>
+<title>Spin Wheel - Fixed</title>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 body {
@@ -23,6 +23,7 @@ body {
   border-radius: 50%;
   box-shadow: 0 8px 30px rgba(0,0,0,0.25);
   background: #fff;
+  transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99);
 }
 #arrow {
   position: absolute;
@@ -61,7 +62,6 @@ body {
   border-radius: 12px;
   margin-bottom: 10px;
   outline: none;
-  -webkit-appearance: none;
 }
 #nameInput:focus { border-color: #ff6b6b; }
 .row {
@@ -78,7 +78,6 @@ body {
   border-radius: 12px;
   color: #fff;
   cursor: pointer;
-  -webkit-appearance: none;
 }
 #addBtn { background: #4ecdc4; }
 #spinBtn {
@@ -165,66 +164,74 @@ body {
 </div>
 
 <div id="controls">
-  <input type="text" id="nameInput" placeholder="Enter name...">
+  <input type="text" id="nameInput" placeholder="Skriv namn...">
   <div class="row">
-    <button class="btn" id="addBtn" onclick="add()">Add</button>
-    <button class="btn" style="background:#ff9ff3" onclick="clearAll()">Clear</button>
+    <button class="btn" id="addBtn" onclick="add()">Lägg till</button>
+    <button class="btn" style="background:#ff9ff3" onclick="clearAll()">Rensa</button>
   </div>
   <div id="namesBox"></div>
-  <button class="btn" id="spinBtn" onclick="spin()" disabled>SPIN!</button>
+  <button class="btn" id="spinBtn" onclick="spin()" disabled>SPELA!</button>
 </div>
 
 <div id="overlay" onclick="closePop()">
   <div id="popup" onclick="event.stopPropagation()">
-    <h2>Winner</h2>
+    <h2>Vinnare</h2>
     <p id="winName"></p>
     <button onclick="closePop()">OK</button>
   </div>
 </div>
 
 <script>
-var names = ['Alice','Bob','Charlie','Diana'];
+var names = ['Björn', 'Anna', 'Lars', 'Maria'];
 var colors = ['#FF6B6B','#4ECDC4','#45B7D1','#FFA07A','#98D8C8','#F7DC6F','#BB8FCE','#85C1E9','#F8B739','#52B788','#FF8FAB','#A0C4FF'];
 var c = document.getElementById('wheel');
 var ctx = c.getContext('2d');
-var rot = 0;
+var currentRotation = 0;
 var spinning = false;
 
 function draw() {
   var w = c.width, h = c.height;
   var cx = w/2, cy = h/2, r = Math.min(w,h)/2 - 8;
   ctx.clearRect(0,0,w,h);
+  
   if(names.length === 0) {
     ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
     ctx.fillStyle='#f0f0f0'; ctx.fill();
     ctx.fillStyle='#aaa'; ctx.font='14px sans-serif';
     ctx.textAlign='center'; ctx.textBaseline='middle';
-    ctx.fillText('Add names',cx,cy-8);
-    ctx.fillText('to spin!',cx,cy+10);
+    ctx.fillText('Lägg till namn',cx,cy-8);
+    ctx.fillText('för att snurra!',cx,cy+10);
     return;
   }
+  
   var slice = (Math.PI*2)/names.length;
-  for(var i=0;i<names.length;i++){
+  for(var i=0; i<names.length; i++){
+    var startAngle = i * slice;
+    var endAngle = startAngle + slice;
+    
     ctx.beginPath(); ctx.moveTo(cx,cy);
-    ctx.arc(cx,cy,r,i*slice,(i+1)*slice);
+    ctx.arc(cx,cy,r,startAngle,endAngle);
     ctx.closePath();
     ctx.fillStyle=colors[i%colors.length]; ctx.fill();
     ctx.strokeStyle='#fff'; ctx.lineWidth=3; ctx.stroke();
-    var mid = i*slice + slice/2;
-    var tx = cx + Math.cos(mid)*r*0.6;
-    var ty = cy + Math.sin(mid)*r*0.6;
-    ctx.save(); ctx.translate(tx,ty); ctx.rotate(mid+Math.PI/2);
-    ctx.fillStyle='#fff'; ctx.font='bold 13px sans-serif';
+    
+    // Text
+    var textAngle = startAngle + slice/2;
+    ctx.save();
+    ctx.translate(cx + Math.cos(textAngle) * r * 0.6, cy + Math.sin(textAngle) * r * 0.6);
+    ctx.rotate(textAngle + Math.PI/2);
+    ctx.fillStyle='#fff'; ctx.font='bold 14px sans-serif';
     ctx.textAlign='center'; ctx.textBaseline='middle';
-    var txt = names[i].length>12 ? names[i].slice(0,10)+'..' : names[i];
-    ctx.fillText(txt,0,0); ctx.restore();
+    var txt = names[i].length > 12 ? names[i].slice(0,10)+'..' : names[i];
+    ctx.fillText(txt, 0, 0);
+    ctx.restore();
   }
 }
 
 function show() {
   var box = document.getElementById('namesBox');
   box.innerHTML = '';
-  for(var i=0;i<names.length;i++){
+  for(var i=0; i<names.length; i++){
     var d = document.createElement('div');
     d.className = 'tag';
     d.style.background = colors[i%colors.length];
@@ -239,34 +246,50 @@ function add() {
   var inp = document.getElementById('nameInput');
   var n = inp.value.trim();
   if(!n) return;
-  if(names.indexOf(n) !== -1) { inp.value=''; return; }
-  names.push(n); inp.value=''; show();
+  names.push(n); 
+  inp.value=''; 
+  show();
 }
 
 function remove(i) {
-  names.splice(i,1); show();
+  names.splice(i,1); 
+  show();
 }
 
 function clearAll() {
-  names = []; show();
+  names = []; 
+  show();
 }
 
 function spin() {
   if(spinning || names.length < 2) return;
+  
   spinning = true;
   document.getElementById('spinBtn').disabled = true;
-  var extra = 5 + Math.random()*3;
-  var off = Math.random() * (360/names.length);
-  var target = rot + extra*360 + off;
-  c.style.transition = 'transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)';
-  c.style.transform = 'rotate('+target+'deg)';
-  rot = target;
+  
+  // Bestäm slumpmässig rotation (minst 5 varv + slump)
+  var extraVarv = 5 + Math.floor(Math.random() * 5);
+  var slumpGrader = Math.floor(Math.random() * 360);
+  var totalRotation = extraVarv * 360 + slumpGrader;
+  
+  currentRotation += totalRotation;
+  c.style.transform = 'rotate(' + currentRotation + 'deg)';
+
   setTimeout(function(){
-    var actual = rot % 360;
-    var slice = 360/names.length;
-    var idx = Math.floor((360 - actual + slice/2)/slice) % names.length;
-    document.getElementById('winName').textContent = names[idx];
+    // Hämta hjulets faktiska rotation i 0-359 grader
+    var actualDeg = currentRotation % 360;
+    
+    // Varje person har en viss "slice" i grader
+    var sliceDeg = 360 / names.length;
+    
+    // Beräkna vinnaren:
+    // 1. Vi tar 360 minus rotationen för att få "pilen" relativt hjulet
+    // 2. Vi lägger till 270 grader eftersom pilen sitter kl 12:00 (Canvas ritar från kl 03:00)
+    var winningIndex = Math.floor(((360 - actualDeg) + 270) % 360 / sliceDeg);
+    
+    document.getElementById('winName').textContent = names[winningIndex];
     document.getElementById('overlay').classList.add('active');
+    
     spinning = false;
     document.getElementById('spinBtn').disabled = false;
   }, 4000);
