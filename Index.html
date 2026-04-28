@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Vinnarmaskinen</title>
+<title>Vinnarmaskinen Deluxe</title>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 <style>
-  * { margin:0; padding:0; box-sizing:border-box; font-family: -apple-system, sans-serif; }
+  * { margin:0; padding:0; box-sizing:border-box; font-family: 'Segoe UI', sans-serif; }
   body { background: #f0f2f5; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 15px; overflow-x: hidden; }
 
   /* Flikar */
-  .tab-container { display: flex; gap: 8px; margin-bottom: 20px; width: 100%; max-width: 500px; flex-wrap: wrap; }
-  .tab-btn { flex: 1; min-width: 100px; padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; background: #ddd; transition: 0.3s; }
+  .tab-container { display: flex; gap: 5px; margin-bottom: 20px; width: 100%; max-width: 600px; flex-wrap: wrap; }
+  .tab-btn { flex: 1; min-width: 80px; padding: 10px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; background: #ddd; font-size: 0.8em; }
   .tab-btn.active { background: #3498db; color: white; }
 
   /* Kontroller */
@@ -21,7 +21,7 @@
   .btn { flex: 1; padding: 12px; cursor: pointer; border: none; border-radius: 8px; font-weight: bold; color: white; }
   
   /* Spelytor */
-  .game-content { display: none; flex-direction: column; align-items: center; width: 100%; position: relative; }
+  .game-content { display: none; flex-direction: column; align-items: center; width: 100%; max-width: 600px; position: relative; }
   .game-content.active { display: flex; }
 
   /* 1. Lyckohjul */
@@ -35,17 +35,16 @@
   @keyframes box-shake { 0% { transform: rotate(1deg); } 50% { transform: rotate(-1deg); } }
 
   /* 3. Ballonger */
-  #balloon-area { width: 100%; height: 400px; position: relative; overflow: hidden; background: #87CEEB; border-radius: 20px; box-shadow: inset 0 0 50px rgba(0,0,0,0.1); }
-  .balloon {
-    position: absolute; bottom: -100px; width: 60px; height: 75px; 
-    border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
-    display: flex; justify-content: center; align-items: center;
-    color: white; font-weight: bold; font-size: 12px; text-align: center;
-    transition: transform 0.2s, opacity 0.2s;
-  }
-  .balloon::after { content: ''; position: absolute; bottom: -10px; border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 10px solid inherit; }
+  #balloon-area { width: 100%; height: 350px; position: relative; overflow: hidden; background: #87CEEB; border-radius: 20px; }
+  .balloon { position: absolute; bottom: -100px; width: 50px; height: 65px; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: white; font-weight: bold; font-size: 10px; }
 
-  /* Vinnare Popup */
+  /* 4. Rally */
+  #rally-track { width: 100%; background: #555; border-radius: 10px; padding: 10px; position: relative; border-right: 10px solid gold; }
+  .lane { height: 40px; border-bottom: 1px dashed #777; position: relative; display: flex; align-items: center; width: 100%; }
+  .car { position: absolute; left: 0; font-size: 24px; transition: left 0.1s linear; display: flex; align-items: center; white-space: nowrap; }
+  .car-name { font-size: 10px; color: white; margin-left: 5px; background: rgba(0,0,0,0.5); padding: 2px 5px; border-radius: 3px; }
+
+  /* Popup */
   .overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); justify-content:center; align-items:center; z-index:100; text-align:center; }
   .pop { background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 350px; }
   .pop p { font-size: 2.5em; font-weight: bold; margin: 15px 0; color: #e74c3c; }
@@ -54,41 +53,28 @@
 <body>
 
   <div class="tab-container">
-    <button class="tab-btn active" onclick="switchTab('wheel-game', this)">Lyckohjul</button>
+    <button class="tab-btn active" onclick="switchTab('wheel-game', this)">Hjul</button>
     <button class="tab-btn" onclick="switchTab('confetti-game', this)">Konfetti</button>
-    <button class="tab-btn" onclick="switchTab('balloon-game', this)">Ballonger</button>
+    <button class="tab-btn" onclick="switchTab('balloon-game', this)">Ballong</button>
+    <button class="tab-btn" onclick="switchTab('rally-game', this)">Rally</button>
   </div>
 
   <div class="controls">
-    <input type="text" id="nameInp" placeholder="Skriv namn...">
+    <input type="text" id="nameInp" placeholder="Namn...">
     <div class="btns">
-      <button class="btn" style="background:#3498db" onclick="addName()">Lägg till</button>
+      <button class="btn" style="background:#3498db" onclick="addName()">+ Lägg till</button>
       <button class="btn" style="background:#95a5a6" onclick="clearAll()">Rensa</button>
     </div>
     <button id="actionBtn" class="btn" style="background:#2ecc71; width:100%; font-size: 1.2em;" onclick="play()">STARTA!</button>
   </div>
 
-  <div id="wheel-game" class="game-content active">
-    <div id="wheelBox">
-      <div id="arrow"></div>
-      <canvas id="wheel" width="300" height="300"></canvas>
-    </div>
-  </div>
-
-  <div id="confetti-game" class="game-content">
-    <div id="luckyBox" class="box"></div>
-  </div>
-
-  <div id="balloon-game" class="game-content">
-    <div id="balloon-area"></div>
-  </div>
+  <div id="wheel-game" class="game-content active"><div id="wheelBox"><div id="arrow"></div><canvas id="wheel" width="300" height="300"></canvas></div></div>
+  <div id="confetti-game" class="game-content"><div id="luckyBox" class="box"></div></div>
+  <div id="balloon-game" class="game-content"><div id="balloon-area"></div></div>
+  <div id="rally-game" class="game-content"><div id="rally-track"></div></div>
 
   <div id="winnerOverlay" class="overlay" onclick="this.style.display='none'">
-    <div class="pop">
-      <h2 style="color:#888">VINNARE</h2>
-      <p id="winText"></p>
-      <button class="btn" style="background:#3498db; width:100%">Härligt!</button>
-    </div>
+    <div class="pop"><h2>VINNARE</h2><p id="winText"></p><button class="btn" style="background:#3498db; width:100%">Grattis!</button></div>
   </div>
 
 <script>
@@ -108,11 +94,7 @@
 
   function addName() {
     const inp = document.getElementById('nameInp');
-    if(inp.value.trim()) {
-      names.push(inp.value.trim());
-      inp.value = '';
-      render();
-    }
+    if(inp.value.trim()) { names.push(inp.value.trim()); inp.value = ''; render(); }
   }
 
   function clearAll() { names = []; render(); }
@@ -120,10 +102,9 @@
   function render() {
     if(activeTab === 'wheel-game') drawWheel();
     else if(activeTab === 'confetti-game') drawConfetti();
-    else drawBalloons();
+    else if(activeTab === 'balloon-game') drawBalloons();
+    else drawRally();
   }
-
-  // --- SPEL-LOGIK ---
 
   function play() {
     if(names.length < 2) return;
@@ -141,98 +122,113 @@
         showWinner(names[winIdx]);
         btn.disabled = false;
       }, 4000);
-
-    } else if(activeTab === 'confetti-game') {
+    } 
+    else if(activeTab === 'confetti-game') {
       document.getElementById('luckyBox').classList.add('shaking');
       setTimeout(() => {
         document.getElementById('luckyBox').classList.remove('shaking');
-        const winner = names[Math.floor(Math.random() * names.length)];
+        showWinner(names[Math.floor(Math.random() * names.length)]);
         confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-        showWinner(winner);
         btn.disabled = false;
       }, 2000);
-
-    } else if(activeTab === 'balloon-game') {
-      startBalloonElimination(btn);
     }
+    else if(activeTab === 'balloon-game') startBalloons(btn);
+    else if(activeTab === 'rally-game') startRally(btn);
   }
 
-  // --- BALLONG-FUNKTIONER ---
+  // --- RALLY LOGIK ---
+  function drawRally() {
+    const track = document.getElementById('rally-track');
+    track.innerHTML = '';
+    names.forEach((name, i) => {
+      const lane = document.createElement('div');
+      lane.className = 'lane';
+      lane.innerHTML = `<div class="car" id="car-${i}">🏎️<span class="car-name">${name}</span></div>`;
+      track.appendChild(lane);
+    });
+  }
 
+  function startRally(btn) {
+    const cars = names.map((_, i) => ({ id: i, pos: 0 }));
+    let raceInterval = setInterval(() => {
+      let winnerFound = false;
+      cars.forEach(car => {
+        car.pos += Math.random() * 5;
+        const el = document.getElementById(`car-${car.id}`);
+        el.style.left = car.pos + '%';
+        if(car.pos >= 85) winnerFound = true;
+      });
+
+      if(winnerFound) {
+        clearInterval(raceInterval);
+        const winner = cars.reduce((prev, curr) => (curr.pos > prev.pos) ? curr : prev);
+        setTimeout(() => {
+          showWinner(names[winner.id]);
+          confetti({ particleCount: 150, spread: 70 });
+          btn.disabled = false;
+          render();
+        }, 500);
+      }
+    }, 50);
+  }
+
+  // --- BALLONG LOGIK ---
   function drawBalloons() {
     const area = document.getElementById('balloon-area');
     area.innerHTML = '';
     names.forEach((name, i) => {
       const b = document.createElement('div');
       b.className = 'balloon';
-      b.style.left = (10 + (i * (80 / names.length)) + Math.random() * 10) + '%';
+      b.style.left = (Math.random() * 80 + 5) + '%';
       b.style.background = colors[i % colors.length];
-      b.style.bottom = '20px';
-      b.innerText = name.substring(0, 5);
+      b.style.bottom = '10px';
+      b.innerText = name.substring(0,5);
       area.appendChild(b);
     });
   }
 
-  function startBalloonElimination(actionBtn) {
+  function startBalloons(btn) {
     const area = document.getElementById('balloon-area');
     area.innerHTML = '';
-    let activeBalloons = [];
-
-    // Skapa och skjut upp alla ballonger
-    names.forEach((name, i) => {
+    let active = names.map((name, i) => {
       const b = document.createElement('div');
       b.className = 'balloon';
-      b.style.left = Math.random() * 80 + 5 + '%';
+      b.style.left = (Math.random() * 80 + 5) + '%';
       b.style.background = colors[i % colors.length];
       b.style.transition = 'bottom 3s ease-out';
       b.innerText = name;
       area.appendChild(b);
-      activeBalloons.push({ el: b, name: name });
-      
-      setTimeout(() => {
-        b.style.bottom = (Math.random() * 200 + 100) + 'px';
-      }, 100);
+      setTimeout(() => b.style.bottom = (Math.random() * 200 + 50) + 'px', 50);
+      return { el: b, name: name };
     });
 
-    // Smäll ballonger en efter en
     let interval = setInterval(() => {
-      if(activeBalloons.length > 1) {
-        let randIdx = Math.floor(Math.random() * activeBalloons.length);
-        let removed = activeBalloons.splice(randIdx, 1)[0];
-        removed.el.style.transform = 'scale(1.5)';
-        removed.el.style.opacity = '0';
-        // Enkel "smäll"-effekt
-        setTimeout(() => removed.el.remove(), 200);
+      if(active.length > 1) {
+        let idx = Math.floor(Math.random() * active.length);
+        let popped = active.splice(idx, 1)[0];
+        popped.el.style.transform = 'scale(2)'; popped.el.style.opacity = '0';
+        setTimeout(() => popped.el.remove(), 200);
       } else {
         clearInterval(interval);
-        const winner = activeBalloons[0];
-        winner.el.style.transform = 'scale(2)';
-        confetti({ particleCount: 100, spread: 50, origin: { y: 0.5 } });
-        setTimeout(() => {
-          showWinner(winner.name);
-          actionBtn.disabled = false;
-          render();
-        }, 1000);
+        showWinner(active[0].name);
+        confetti({ particleCount: 100, origin: { y: 0.5 } });
+        btn.disabled = false;
+        setTimeout(render, 2000);
       }
     }, 800);
   }
 
-  // --- HJÄLPFUNKTIONER ---
-
+  // --- GEMENSAMMA FUNKTIONER ---
   function drawWheel() {
     const canvas = document.getElementById('wheel');
     const ctx = canvas.getContext('2d');
     const slice = (Math.PI*2) / names.length;
     ctx.clearRect(0,0,300,300);
     names.forEach((name, i) => {
-      ctx.beginPath();
-      ctx.fillStyle = colors[i % colors.length];
-      ctx.moveTo(150,150);
-      ctx.arc(150,150, 145, i*slice, (i+1)*slice);
-      ctx.fill();
-      ctx.strokeStyle = "white"; ctx.stroke();
-      ctx.save();
-      ctx.translate(150,150); ctx.rotate(i*slice + slice/2);
+      ctx.beginPath(); ctx.fillStyle = colors[i % colors.length];
+      ctx.moveTo(150,150); ctx.arc(150,150, 145, i*slice, (i+1)*slice);
+      ctx.fill(); ctx.strokeStyle = "white"; ctx.stroke();
+      ctx.save(); ctx.translate(150,150); ctx.rotate(i*slice + slice/2);
       ctx.fillStyle = "white"; ctx.font = "bold 12px sans-serif";
       ctx.textAlign = "right"; ctx.fillText(name.substring(0,10), 130, 5);
       ctx.restore();
